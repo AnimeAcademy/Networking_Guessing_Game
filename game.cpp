@@ -1,28 +1,31 @@
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include "game.h"
 #include <string>
 #include <mutex>
 
+using namespace std;
 
 namespace
 {
     int secret_number = 0;
     int winner_client = -1;
-    std::mutex game_mutex;
-    std::atomic<bool> game_over_flag(false);
+    mutex game_mutex;
+    atomic<bool> game_over_flag(false);
 }
 
 void init_game()
 {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-    std::lock_guard<std::mutex> lock(game_mutex);
-    secret_number = std::rand() % 100 + 1;
+    srand(static_cast<unsigned int>(time(nullptr)));
+    lock_guard<mutex> lock(game_mutex);
+    secret_number = rand() % 100 + 1;
     winner_client = -1;
     game_over_flag = false;
 }
 
-std::pair<std::string, bool> process_guess(int guess, int client_id)
+pair<string, bool> process_guess(int guess, int client_id)
 {
-    std::lock_guard<std::mutex> lock(game_mutex);
+    lock_guard<mutex> lock(game_mutex);
     if (game_over_flag)
     {
         return { "Game already won!\r\n", false };
@@ -46,7 +49,7 @@ std::pair<std::string, bool> process_guess(int guess, int client_id)
 
 int get_winning_client()
 {
-    std::lock_guard<std::mutex> lock(game_mutex);
+    lock_guard<mutex> lock(game_mutex);
     return winner_client;
 }
 
@@ -58,4 +61,18 @@ bool is_game_over()
 void reset_game()
 {
     init_game();
+}
+
+void ClientGameLogic(SOCKET clientSocket) {
+    //TODO: Welcome to game
+
+    //TODO: Explain the rules
+
+    //TODO: Ready UP?
+
+    //TODO:Ask player to guess number
+    //TODO:get players guess
+
+    //TODO:check player guess 
+    //TODO:Send too high low or correct
 }

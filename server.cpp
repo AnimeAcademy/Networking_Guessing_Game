@@ -29,45 +29,70 @@ void start_server(int listen_port)
         return;
     }
     //initialize the game
-    init_game();
+    init_game();//?????????????????????????????
+
     //create the listen socket
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET) {
         cout << "socket: " << WSAGetLastError() << endl;
         return;
     }
-    res = listen(sock, SOMAXCONN);
-    if (res == SOCKET_ERROR) {
-        cout << "listen: " << WSAGetLastError() << endl;
-        return;
-    }
-    // TODO: set address and port 
+    // set address and port 
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_port = htons(listen_port);
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    // TODO: bind the socket
+
+    // bind the socket
     res = bind(sock, (sockaddr*)&addr, sizeof(addr));
     if (res == SOCKET_ERROR) {
         cout << "bind: " << WSAGetLastError() << endl;
         return;
     }
 
-
-    // TODO: begin listening for connections
+    // begin listening for connections
+    res = listen(sock, SOMAXCONN);
+    if (res == SOCKET_ERROR) {
+        cout << "listen: " << WSAGetLastError() << endl;
+        return;
+    }
     safe_print("Server listening on port " + to_string(listen_port) + "\n");
+
+    //Set Socket to non-blocking
+    u_long nonBlocking = 1;
+    res = ioctlsocket(sock, FIONBIO, &nonBlocking);
+    if (res == SOCKET_ERROR) {
+        cout << "ioctlsocket: " << WSAGetLastError() << endl;
+        return;
+    }
+
     // Initialize the game before accepting:
-    //init_game();
+    init_game();//??????????????????????
+
+
+    sockaddr_in clientAddr{};
+    int addrLen = sizeof(clientAddr);
 
     while (true)
     {
         // TODO accept incoming clients,
+        SOCKET clientSock = accept(sock, (sockaddr*)&clientAddr, &addrLen);
+        if (clientSock == INVALID_SOCKET) {
+            if (WSAGetLastError() != WSAEWOULDBLOCK)
+                cout << "accept: " << WSAGetLastError() << endl;
+            this_thread::sleep_for(chrono::milliseconds(100));
+        }
+        else {
+            //run thread
+            thread worker(ClientGameLogic, clientSock);
+            worker.detach();
+        }
         // TODO handle clients (select or threads)
-        //if (is_game_over())
-        //{
-        //    safe_print("Game Over. Resetting game ...\n");
-        //    reset_game();
-        //}
+        if (is_game_over())
+        {
+            safe_print("Game Over. Resetting game ...\n");
+            reset_game();
+        }
         this_thread::sleep_for(chrono::milliseconds(100));
     }
 
