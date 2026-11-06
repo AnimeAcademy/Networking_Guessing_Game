@@ -21,15 +21,38 @@ void safe_print(const string& msg)
 
 void start_server(int listen_port)
 {
-    // TODO: initialize winsock
-
-    // TODO: initialize the game
-
-    // TODO: create the listen socket
-
+    //initialize winsock
+    WSADATA wsaData;
+    int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (res != 0) {
+        cout << "WSAStartup:" << WSAGetLastError() << endl;
+        return;
+    }
+    //initialize the game
+    init_game();
+    //create the listen socket
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET) {
+        cout << "socket: " << WSAGetLastError() << endl;
+        return;
+    }
+    res = listen(sock, SOMAXCONN);
+    if (res == SOCKET_ERROR) {
+        cout << "listen: " << WSAGetLastError() << endl;
+        return;
+    }
     // TODO: set address and port 
-
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(listen_port);
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     // TODO: bind the socket
+    res = bind(sock, (sockaddr*)&addr, sizeof(addr));
+    if (res == SOCKET_ERROR) {
+        cout << "bind: " << WSAGetLastError() << endl;
+        return;
+    }
+
 
     // TODO: begin listening for connections
     safe_print("Server listening on port " + to_string(listen_port) + "\n");
