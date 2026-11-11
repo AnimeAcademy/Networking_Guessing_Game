@@ -27,6 +27,9 @@
     <ClCompile Include="client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NetworkHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="server.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkHelper.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

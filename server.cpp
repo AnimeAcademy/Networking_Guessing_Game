@@ -75,7 +75,7 @@ void start_server(int listen_port)
 
     while (true)
     {
-        // TODO accept incoming clients,
+        //accept incoming clients,
         SOCKET clientSock = accept(sock, (sockaddr*)&clientAddr, &addrLen);
         if (clientSock == INVALID_SOCKET) {
             if (WSAGetLastError() != WSAEWOULDBLOCK)

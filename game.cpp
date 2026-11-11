@@ -1,8 +1,9 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include "game.h"
 #include <string>
 #include <mutex>
+#include "game.h"
+#include "NetworkHelper.h"
 
 using namespace std;
 
@@ -30,7 +31,9 @@ pair<string, bool> process_guess(int guess, int client_id)
     {
         return { "Game already won!\r\n", false };
     }
-
+    if (guess > 100) {
+        return { "Number is higher than guessing range.\r\n", false };
+    }
     if (guess < secret_number)
     {
         return { "Too low.\r\n", false };
@@ -64,15 +67,94 @@ void reset_game()
 }
 
 void ClientGameLogic(SOCKET clientSocket) {
-    //TODO: Welcome to game
+    //Set Client ID
+    static atomic<int> client_counter{ 0 };
+    int client_id = ++client_counter;
 
-    //TODO: Explain the rules
+    //Print Client connected
+    cout << "Client " << client_id << " connected" << endl;
 
+    string message = "Welcome to the Guessing Game!";
+    int res, playerGuess;
+    //Welcome to game
+    res = SendTCPMessage(clientSocket, message);
+    if (res == 0) {
+        cout << "Client " << client_id << " disconnected" << endl;
+        return;
+    }
+    //Explain the rules
+    message = "Guess a number between 1 and 50. \n"
+        "You will be racing against other players. \n"
+        "First one to guess the number WINS!\n";
+    res = SendTCPMessage(clientSocket, message);
+    if (res == 0) {
+        cout << "Client " << client_id << " disconnected" << endl;
+        return;
+    }
     //TODO: Ready UP?
 
-    //TODO:Ask player to guess number
-    //TODO:get players guess
+    //Get Started
+    message = "Let's start guessing!";
+    res = SendTCPMessage(clientSocket, message);
+    if (res == 0) {
+        cout << "Client " << client_id << " disconnected" << endl;
+        return;
+    }
 
-    //TODO:check player guess 
-    //TODO:Send too high low or correct
-}
+    while (!game_over_flag) {
+        //Ask for Guess
+        message = "Your Guess: ";
+        res = SendTCPMessage(clientSocket, message);
+        if (res == 0) {
+            cout << "Client " << client_id << " disconnected" << endl;
+            return;
+        }
+
+        //get players guess
+        res = RecieveTCPMessage(clientSocket, message);
+        if (res == 0) {
+            cout << "Client " << client_id << " disconnected" << endl;
+            return;
+        }
+
+        //check player guess 
+        size_t start = message.find("Player Guess: ");
+        if (start != string::npos) {
+
+            start += string("Player Guess: ").length();
+            playerGuess = stoi(message, &start);
+            //TODO save output bool
+            message = process_guess(playerGuess, client_id);
+            //found guess now send response to player
+            //Too high / low or correct
+            res = SendTCPMessage(clientSocket, message);
+            if (res == 0) {
+                cout << "Client " << client_id << " disconnected" << endl;
+                return;
+            }
+        }
+        else {
+            //failed to get player guess try again
+            message = "Wrong input, please put in a valid number";
+            res = SendTCPMessage(clientSocket, message);
+            if (res == 0) {
+                cout << "Client " << client_id << " disconnected" << endl;
+                return;
+            }
+        }
+    }
+    //After game ended
+    if (client_id != winner_client) {
+        //If player didn't win say who did
+        message = "Client " + winner_client;
+        message.append("has won! ");
+        SendTCPMessage(clientSocket, message);
+        if (res == 0) {
+            cout << "Client " << client_id << " disconnected" << endl;
+            return;
+        }
+    }
+    //After recieving who won (themselves or someone else)
+        
+    //TODO disconect / cleanup for client thread
+    }
