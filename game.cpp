@@ -155,6 +155,17 @@ void ClientGameLogic(SOCKET clientSocket) {
         }
     }
     //After recieving who won (themselves or someone else)
-        
-    //TODO disconect / cleanup for client thread
+
+    //tell client we are done and close socket
+    res = shutdown(clientSocket, SD_SEND);
+    if (res == SOCKET_ERROR) {
+        cout << "shutdown: " << WSAGetLastError() << endl;
     }
+
+    res = closesocket(clientSocket);
+    if (res != 0) {
+        cout << "closesocket: " << WSAGetLastError() << endl;
+    }
+
+    return;
+}

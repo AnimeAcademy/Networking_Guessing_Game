@@ -96,7 +96,19 @@ void start_server(int listen_port)
         this_thread::sleep_for(chrono::milliseconds(100));
     }
 
-    // TODO: close sockets, cleanup
+    //close sockets, cleanup
+    res = closesocket(sock);
+    if (res != 0) {
+        cout << "closesocket: " << WSAGetLastError() << endl;
+    }
+
+
+    //Shutting Down Library
+    res = WSACleanup();
+    if (res != 0) {
+        cout << "WSACleanup: " << WSAGetLastError() << endl;
+        return;
+    }
 }
 int main(int argc, char** argv)
 {
