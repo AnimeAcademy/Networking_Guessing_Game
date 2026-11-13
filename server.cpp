@@ -28,8 +28,6 @@ void start_server(int listen_port)
         cout << "WSAStartup:" << WSAGetLastError() << endl;
         return;
     }
-    //initialize the game
-    init_game();//?????????????????????????????
 
     //create the listen socket
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -67,8 +65,7 @@ void start_server(int listen_port)
     }
 
     // Initialize the game before accepting:
-    init_game();//??????????????????????
-
+    init_game();
 
     sockaddr_in clientAddr{};
     int addrLen = sizeof(clientAddr);
