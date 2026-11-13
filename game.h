@@ -1,6 +1,8 @@
 #pragma once
+#include <utility> 
+#include <string>  
 
-
+using namespace std;
 
 void init_game();
 
@@ -12,7 +14,7 @@ bool is_game_over();
 
 void reset_game();
 
-void ClientGameLogic();
+void ClientGameLogic(SOCKET clientSocket);
 
 
 

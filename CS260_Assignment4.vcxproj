@@ -123,14 +123,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="client.cpp" />
-    <ClCompile Include="CS260_Assignment4.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="NetworkHelper.cpp" />
     <ClCompile Include="server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="client.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="NetworkHelper.h" />
     <ClInclude Include="server.h" />

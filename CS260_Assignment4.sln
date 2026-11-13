@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36705.20 d17.14
+VisualStudioVersion = 17.14.36705.20
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CS260_Assignment4", "CS260_Assignment4.vcxproj", "{FB6E471D-6E61-4E5C-B64E-E9E471F394C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GuessingGameClient", "..\GuessingGameClient\GuessingGameClient.vcxproj", "{976DD7F5-209E-487A-9809-24F4238DC796}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{FB6E471D-6E61-4E5C-B64E-E9E471F394C9}.Release|x64.Build.0 = Release|x64
 		{FB6E471D-6E61-4E5C-B64E-E9E471F394C9}.Release|x86.ActiveCfg = Release|Win32
 		{FB6E471D-6E61-4E5C-B64E-E9E471F394C9}.Release|x86.Build.0 = Release|Win32
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Debug|x64.ActiveCfg = Debug|x64
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Debug|x64.Build.0 = Debug|x64
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Debug|x86.ActiveCfg = Debug|Win32
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Debug|x86.Build.0 = Debug|Win32
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Release|x64.ActiveCfg = Release|x64
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Release|x64.Build.0 = Release|x64
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Release|x86.ActiveCfg = Release|Win32
+		{976DD7F5-209E-487A-9809-24F4238DC796}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

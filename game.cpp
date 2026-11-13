@@ -1,6 +1,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <string>
+#include <utility> 
+#include <string>   
 #include <mutex>
 #include "game.h"
 #include "NetworkHelper.h"
@@ -124,7 +125,7 @@ void ClientGameLogic(SOCKET clientSocket) {
             start += string("Player Guess: ").length();
             playerGuess = stoi(message, &start);
             //TODO save output bool
-            message = process_guess(playerGuess, client_id);
+            message = process_guess(playerGuess, client_id).first;
             //found guess now send response to player
             //Too high / low or correct
             res = SendTCPMessage(clientSocket, message);
