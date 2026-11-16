@@ -109,16 +109,29 @@ void start_server(int listen_port)
 }
 int main(int argc, char** argv)
 {
-    try
-    {
-        // TODO: get port from argv 
-        // Is the port valid? (1 <= port < 65536)
-        //start_server(0);
-    }
-    catch (const exception& e)
-    {
-        cerr << "Error: " << e.what() << endl;
-        return 1;
-    }
+        // get port from argv 
+        int port = 0;
+
+        if (argc != 2) {
+            cerr << "Usage: " << argv[0] << " <port>\n";
+            return 1;
+        }
+
+        try {
+            size_t pos = 0;
+            port = stoi(argv[1], &pos);
+
+            if (pos != strlen(argv[1]) || port < 1 || port > 65535) {
+                throw invalid_argument("Invalid port");
+            }
+        }
+        catch (const exception&) {
+            cerr << "Usage: " << argv[0] << " <port>\n";
+            return 1;
+        }
+
+        start_server(port);
+    
+
     return 0;
 }
