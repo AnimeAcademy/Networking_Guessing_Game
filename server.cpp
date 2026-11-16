@@ -1,22 +1,41 @@
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iostream>
-#include <string>
-#include <thread>
-#include <mutex>
 #include "server.h"
 #include "game.h"
-
 
 using namespace std;
 #pragma comment(lib, "ws2_32.lib")
 
 mutex cout_mutex;
+mutex clients_mutex;
 
 void safe_print(const string& msg)
 {
     lock_guard<mutex> lock(cout_mutex);
     cout << msg;
+}
+
+void Add_Client(int ID, SOCKET sock) {
+    lock_guard<mutex> lock(clients_mutex);
+    clients.emplace_back(ID, sock);
+}
+
+void Remove_Client(int client_id, SOCKET clientSock) {
+    //remove client from registar
+    std::lock_guard<std::mutex> lock(clients_mutex);
+    clients.erase(
+        remove_if(clients.begin(), clients.end(),
+            [client_id](const auto& client) {
+                return client.first == client_id;
+            }),
+        clients.end()
+    );
+    //CLose socket
+    if (closesocket(clientSock) != 0) {
+        cout << "closesocket: " << WSAGetLastError() << endl;
+    }
+    //print which client left
+    string msg = "Client " + client_id;
+    msg.append(" disconnected\n");
+    safe_print(msg);
 }
 
 void start_server(int listen_port)
@@ -80,6 +99,8 @@ void start_server(int listen_port)
             this_thread::sleep_for(chrono::milliseconds(100));
         }
         else {
+            //Set socket ID
+            
             //run thread
             thread worker(ClientGameLogic, clientSock);
             worker.detach();

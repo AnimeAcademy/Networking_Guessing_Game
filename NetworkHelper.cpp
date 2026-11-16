@@ -12,10 +12,10 @@ int SendTCPMessage(SOCKET sock, std::string message)
         res = send(sock, (message.c_str() + bytesSent), (totalBytes - bytesSent), 0);
         if (res == SOCKET_ERROR) {
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
-                res = closesocket(sock);
-                if (res != 0) {
-                    cout << "closesocket: " << WSAGetLastError() << endl;
-                }
+                //res = closesocket(sock);
+                //if (res != 0) {
+                //    cout << "closesocket: " << WSAGetLastError() << endl;
+                //}
                 return 0;
             }
             this_thread::sleep_for(chrono::milliseconds(100));

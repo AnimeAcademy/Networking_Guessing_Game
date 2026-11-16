@@ -1,9 +1,5 @@
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <utility> 
-#include <string>   
-#include <mutex>
 #include "game.h"
+#include "server.h"
 #include "NetworkHelper.h"
 
 using namespace std;
@@ -25,7 +21,7 @@ void init_game()
     game_over_flag = false;
 }
 
-pair<string, bool> process_guess(int guess, int client_id)
+string process_guess(int guess, int client_id)
 {
     lock_guard<mutex> lock(game_mutex);
     if (game_over_flag)
@@ -69,8 +65,8 @@ void reset_game()
 
 void ClientGameLogic(SOCKET clientSocket) {
     //Set Client ID
-    static atomic<int> client_counter{ 0 };
     int client_id = ++client_counter;
+    Add_Client(client_id, clientSocket);
 
     //Print Client connected
     cout << "Client " << client_id << " connected" << endl;
@@ -80,7 +76,7 @@ void ClientGameLogic(SOCKET clientSocket) {
     //Welcome to game
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
-        cout << "Client " << client_id << " disconnected" << endl;
+        Remove_Client(client_id, clientSocket);
         return;
     }
     //Explain the rules
@@ -89,7 +85,7 @@ void ClientGameLogic(SOCKET clientSocket) {
         "First one to guess the number WINS!\n";
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
-        cout << "Client " << client_id << " disconnected" << endl;
+        Remove_Client(client_id, clientSocket);
         return;
     }
     //TODO: Ready UP?
@@ -98,7 +94,7 @@ void ClientGameLogic(SOCKET clientSocket) {
     message = "Let's start guessing!";
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
-        cout << "Client " << client_id << " disconnected" << endl;
+        Remove_Client(client_id, clientSocket);
         return;
     }
 
@@ -107,14 +103,14 @@ void ClientGameLogic(SOCKET clientSocket) {
         message = "Your Guess: ";
         res = SendTCPMessage(clientSocket, message);
         if (res == 0) {
-            cout << "Client " << client_id << " disconnected" << endl;
+            Remove_Client(client_id, clientSocket);
             return;
         }
 
         //get players guess
         res = RecieveTCPMessage(clientSocket, message);
         if (res == 0) {
-            cout << "Client " << client_id << " disconnected" << endl;
+            Remove_Client(client_id, clientSocket);
             return;
         }
 
@@ -125,12 +121,12 @@ void ClientGameLogic(SOCKET clientSocket) {
             start += string("Player Guess: ").length();
             playerGuess = stoi(message, &start);
             //TODO save output bool
-            message = process_guess(playerGuess, client_id).first;
+            message = process_guess(playerGuess, client_id);
             //found guess now send response to player
             //Too high / low or correct
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
-                cout << "Client " << client_id << " disconnected" << endl;
+                Remove_Client(client_id, clientSocket);
                 return;
             }
         }
@@ -139,7 +135,7 @@ void ClientGameLogic(SOCKET clientSocket) {
             message = "Wrong input, please put in a valid number";
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
-                cout << "Client " << client_id << " disconnected" << endl;
+                Remove_Client(client_id, clientSocket);
                 return;
             }
         }
@@ -151,7 +147,7 @@ void ClientGameLogic(SOCKET clientSocket) {
         message.append("has won! ");
         SendTCPMessage(clientSocket, message);
         if (res == 0) {
-            cout << "Client " << client_id << " disconnected" << endl;
+            Remove_Client(client_id, clientSocket);
             return;
         }
     }
@@ -163,10 +159,7 @@ void ClientGameLogic(SOCKET clientSocket) {
         cout << "shutdown: " << WSAGetLastError() << endl;
     }
 
-    res = closesocket(clientSocket);
-    if (res != 0) {
-        cout << "closesocket: " << WSAGetLastError() << endl;
-    }
+    Remove_Client(client_id, clientSocket);
 
     return;
 }
