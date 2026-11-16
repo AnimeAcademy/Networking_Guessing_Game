@@ -17,3 +17,15 @@ static atomic<int> client_counter{ 0 };
 void Add_Client(int ID, SOCKET sock);
 
 void Remove_Client(int client_id, SOCKET clientSock);
+
+bool Are_Clients_Empty();
+
+
+
+
+
+
+
+
+
+

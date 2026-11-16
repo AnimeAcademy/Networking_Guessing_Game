@@ -19,6 +19,14 @@ void Add_Client(int ID, SOCKET sock) {
 }
 
 void Remove_Client(int client_id, SOCKET clientSock) {
+    //CLose socket
+    if (closesocket(clientSock) != 0) {
+        cout << "closesocket: " << WSAGetLastError() << endl;
+    }
+    //print which client left
+    string msg = "Client " + client_id;
+    msg.append(" disconnected\n");
+    safe_print(msg);
     //remove client from registar
     std::lock_guard<std::mutex> lock(clients_mutex);
     clients.erase(
@@ -28,14 +36,12 @@ void Remove_Client(int client_id, SOCKET clientSock) {
             }),
         clients.end()
     );
-    //CLose socket
-    if (closesocket(clientSock) != 0) {
-        cout << "closesocket: " << WSAGetLastError() << endl;
-    }
-    //print which client left
-    string msg = "Client " + client_id;
-    msg.append(" disconnected\n");
-    safe_print(msg);
+}
+
+bool Are_Clients_Empty()
+{
+    std::lock_guard<std::mutex> lock(clients_mutex);
+    return clients.empty();
 }
 
 void start_server(int listen_port)
@@ -109,7 +115,8 @@ void start_server(int listen_port)
         if (is_game_over())
         {
             safe_print("Game Over. Resetting game ...\n");
-            reset_game();
+            if(Are_Clients_Empty())
+                reset_game();
         }
         this_thread::sleep_for(chrono::milliseconds(100));
     }
