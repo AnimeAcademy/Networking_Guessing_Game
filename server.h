@@ -9,15 +9,13 @@
 #include <algorithm>
 #include <vector>
 
-vector<std::pair<int, SOCKET>> clients;
-static atomic<int> client_counter{ 0 };
-
+extern atomic<int> client_counter;
 
 void safe_print(const string& msg);
 
 void Add_Client(int ID, SOCKET sock);
 
-void Remove_Client(int client_id, SOCKET clientSock);
+void Remove_Client(int client_id, SOCKET clientSock, int error = 1);
 
 bool Are_Clients_Empty();
 

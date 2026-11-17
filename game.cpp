@@ -69,10 +69,10 @@ void ClientGameLogic(SOCKET clientSocket) {
     Add_Client(client_id, clientSocket);
 
     //Print Client connected
-    string message = "Client " + to_string(client_id) + " connected";
+    string message = "Client " + to_string(client_id) + " connected\n";
     safe_print(message);
 
-    message = "Welcome to the Guessing Game!";
+    message = "Welcome to the Guessing Game!\n";
     int res, playerGuess;
     //Welcome to game
     res = SendTCPMessage(clientSocket, message);
@@ -92,7 +92,7 @@ void ClientGameLogic(SOCKET clientSocket) {
     //TODO: Ready UP?
 
     //Get Started
-    message = "Let's start guessing!";
+    message = "Let's start guessing!\n";
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
         Remove_Client(client_id, clientSocket);

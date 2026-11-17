@@ -11,11 +11,11 @@ using namespace std;
 // SOCKET is the socket of where to send the message
 // STRING is the message to send
 // returns 1 if succseeded and 0 if failed
-int SendTCPMessage(SOCKET sock, string message);
+int SendTCPMessage(SOCKET sock, string& message);
 
 //Recieves a sting from the client
 // Params: SOCKET, STRING
 // SOCKET is where you are recieving data
 // STRING is where the message will be stored
 // returns 1 if succseeded and 0 if failed
-int RecieveTCPMessage(SOCKET sock, string message);
+int RecieveTCPMessage(SOCKET sock, string& message);
