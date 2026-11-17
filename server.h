@@ -21,6 +21,7 @@ bool Are_Clients_Empty();
 
 void start_server(int listen_port);
 
+int main(int argc, char** argv);
 
 
 
