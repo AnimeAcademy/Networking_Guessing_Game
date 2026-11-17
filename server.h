@@ -13,12 +13,15 @@ vector<std::pair<int, SOCKET>> clients;
 static atomic<int> client_counter{ 0 };
 
 
+void safe_print(const string& msg);
 
 void Add_Client(int ID, SOCKET sock);
 
 void Remove_Client(int client_id, SOCKET clientSock);
 
 bool Are_Clients_Empty();
+
+void start_server(int listen_port);
 
 
 

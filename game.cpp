@@ -69,9 +69,10 @@ void ClientGameLogic(SOCKET clientSocket) {
     Add_Client(client_id, clientSocket);
 
     //Print Client connected
-    cout << "Client " << client_id << " connected" << endl;
+    string message = "Client " + to_string(client_id) + " connected";
+    safe_print(message);
 
-    string message = "Welcome to the Guessing Game!";
+    message = "Welcome to the Guessing Game!";
     int res, playerGuess;
     //Welcome to game
     res = SendTCPMessage(clientSocket, message);
@@ -80,7 +81,7 @@ void ClientGameLogic(SOCKET clientSocket) {
         return;
     }
     //Explain the rules
-    message = "Guess a number between 1 and 50. \n"
+    message = "Guess a number between 1 and 100. \n"
         "You will be racing against other players. \n"
         "First one to guess the number WINS!\n";
     res = SendTCPMessage(clientSocket, message);
@@ -143,8 +144,7 @@ void ClientGameLogic(SOCKET clientSocket) {
     //After game ended
     if (client_id != winner_client) {
         //If player didn't win say who did
-        message = "Client " + winner_client;
-        message.append("has won! ");
+        message = "Client " + to_string(winner_client) + " has won!";
         SendTCPMessage(clientSocket, message);
         if (res == 0) {
             Remove_Client(client_id, clientSocket);

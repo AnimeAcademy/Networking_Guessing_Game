@@ -24,8 +24,7 @@ void Remove_Client(int client_id, SOCKET clientSock) {
         cout << "closesocket: " << WSAGetLastError() << endl;
     }
     //print which client left
-    string msg = "Client " + client_id;
-    msg.append(" disconnected\n");
+    string msg = "Client " + to_string(client_id) + "disconnected\n";
     safe_print(msg);
     //remove client from registar
     std::lock_guard<std::mutex> lock(clients_mutex);
