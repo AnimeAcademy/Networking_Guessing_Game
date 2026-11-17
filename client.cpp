@@ -18,7 +18,7 @@ static mutex cout_mutex;
 // so std::cout/std::cerr need to be serialized.
 static void safe_print(const string& msg)
 {
-    lock_guard<std::mutex> lock(cout_mutex);
+    lock_guard<mutex> lock(cout_mutex);
     cout << msg;
 }
 
@@ -29,9 +29,37 @@ static void receive_loop(SOCKET sock)
     while (running)
     {
         // receive a message (block until receiving)
-        // if successful, decode message and display text.
+#define BUF_LEN 1400
+        char buf[BUF_LEN + 1]; //leave room for \0
+        string msg;
+        int res;
+        while (true) {
+            res = recv(sock, buf, BUF_LEN, 0); // resv = num of bytes recieved
+            if (res == SOCKET_ERROR) {
+                if (WSAGetLastError() != WSAEWOULDBLOCK) {
+                    cout << "recv: " << WSAGetLastError() << endl;
+                    res = closesocket(sock);
+                    if (res != 0) {
+                        cout << "closesocket: " << WSAGetLastError() << endl;
+                    }
         // if server disconnect, print disconnection method and exit.
-        // if error, print error message and code and exit.
+                    safe_print("Error receiving data, please press ctl + c to disconect and try again");
+                    return;
+                }
+                else {
+                    this_thread::sleep_for(chrono::milliseconds(100));
+                }
+            }
+            else if (res == 0) {//done receiving
+                running = false;
+                return;
+            }
+            else {
+                 // if successful, decode message and display text.
+                msg.append(buf, res);
+            }
+        }
+        safe_print(msg);
 
         running = false;
     }
@@ -60,8 +88,42 @@ static void input_loop(SOCKET sock)
 
 static void run_client(const string& server_ip, int port)
 {
-    // TODO: Initialize Winsock, create address, connect to server
-    SOCKET sock;
+
+    //Initialize the Library
+    WSADATA wsaData;
+    int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (res != 0) {
+        cout << "WSAStartup:" << WSAGetLastError() << endl;
+        return;
+    }
+    //Create a TCP Socket
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET) {
+        cout << "socket: " << WSAGetLastError() << endl;
+        return;
+    }
+    //creat address
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);//serverIP????????????
+
+    //Create a TCP Socket
+    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET) {
+        cout << "socket: " << WSAGetLastError() << endl;
+        return;
+    }
+    //Connect Socket
+    res = connect(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+    if (res == SOCKET_ERROR) {
+        cout << "connect: " << WSAGetLastError() << endl;
+        if (closesocket(sock) != 0) {
+            cout << "closesocket: " << WSAGetLastError() << endl;
+        }
+        return;
+    }
+   
     // Detached because std::getline blocks on stdin and there is no
     // portable way to unblock it from the recv thread. The process exits
     // when run_client returns, which tears the thread down.
@@ -69,45 +131,57 @@ static void run_client(const string& server_ip, int port)
 
     receive_loop(sock);
 
-    // TODO: shutdown cleanup and prepare for exit
+    // shutdown cleanup and prepare for exit
+    res = closesocket(sock);
+    if (res != 0) {
+        cout << "closesocket: " << WSAGetLastError() << endl;
+    }
+
+    res = WSACleanup();
+    if (res != 0) {
+        cout << "WSACleanup: " << WSAGetLastError() << endl;
+        return;
+    }
+
 }
 
 int main(int argc, char* argv[])
 {
     // TODO: get port from argv (is it valid?)
-    // Print usage instructions if port not given
-    try
-    {
-        string server_ip = "127.0.0.1";
-        int port = 0;
-        run_client(server_ip, port);
-    }
-    catch (const exception& e)
-    {
-        cerr << "Invalid input: " << e.what() << "\n";
+    int port = 0;
+    string server_ip = "127.0.0.1";
+    if (argc != 2) {
+        cerr << "Usage: " << argv[0] << " <port>\n";
         return 1;
     }
 
+    try {
+        size_t pos = 0;
+        port = stoi(argv[1], &pos);
+
+        if (pos != strlen(argv[1]) || port < 1 || port > 65535) {
+            throw invalid_argument("Invalid port");
+        }
+    }
+    catch (const exception&) {
+        cerr << "Usage: " << argv[0] << " <port>\n";
+        return 1;
+    }
+    
+    run_client(server_ip, port);
+
+    //// Print usage instructions if port not given
+    //try
+    //{
+    //    string server_ip = "127.0.0.1";
+    //    int port = 0;
+    //    run_client(server_ip, port);
+    //}
+    //catch (const exception& e)
+    //{
+    //    cerr << "Invalid input: " << e.what() << "\n";
+    //    return 1;
+    //}
+
     return 0;
 }
-
-//// get port from argv 
-//int port = 0;
-//
-//if (argc != 2) {
-//    cerr << "Usage: " << argv[0] << " <port>\n";
-//    return 1;
-//}
-//
-//try {
-//    size_t pos = 0;
-//    port = stoi(argv[1], &pos);
-//
-//    if (pos != strlen(argv[1]) || port < 1 || port > 65535) {
-//        throw invalid_argument("Invalid port");
-//    }
-//}
-//catch (const exception&) {
-//    cerr << "Usage: " << argv[0] << " <port>\n";
-//    return 1;
-//}
