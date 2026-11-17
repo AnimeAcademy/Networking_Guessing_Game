@@ -76,13 +76,37 @@ static void input_loop(SOCKET sock)
 
         // TODO: encode input and send to server 
 
-        int sent = SOCKET_ERROR;
-        if (sent == SOCKET_ERROR)
-        {
-            safe_print("Send failed: " + to_string(WSAGetLastError()) + "\n");
-            running = false;
-            break;
+        int res = SOCKET_ERROR;
+        string msg = "Player Guess: ";
+        msg.append(input);
+        int totalBytes = (int)msg.length();
+        int bytesSent = 0;
+        while (bytesSent != totalBytes) {
+            int res = send(sock, (msg.c_str() + bytesSent), (totalBytes - bytesSent), 0);
+            if (res == SOCKET_ERROR) {
+                if (WSAGetLastError() != WSAEWOULDBLOCK) {
+                    safe_print("Send failed: " + to_string(WSAGetLastError()) + "\n");
+                    res = closesocket(sock);
+                    if (res != 0) {
+                        safe_print("Socketclose failed: " + to_string(WSAGetLastError()) + "\n");
+                    }
+                    running = false;
+                    return;
+                }
+                this_thread::sleep_for(chrono::milliseconds(100));
+            }
+            else if (res == 0) {
+                res = closesocket(sock);
+                if (res != 0) {
+                    safe_print("Socketclose failed: " + to_string(WSAGetLastError()) + "\n");
+                }
+                running = false;
+                return;
+            }
+            else
+                bytesSent += res;
         }
+
     }
 }
 
