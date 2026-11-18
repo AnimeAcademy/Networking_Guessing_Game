@@ -87,7 +87,7 @@ static void input_loop(SOCKET sock)
         int totalBytes = (int)msg.length();
         int bytesSent = 0;
         while (bytesSent != totalBytes) {
-            int res = send(sock, (msg.c_str() + bytesSent), (totalBytes - bytesSent), 0);
+            res = send(sock, (msg.c_str() + bytesSent), (totalBytes - bytesSent), 0);
             if (res == SOCKET_ERROR) {
                 if (WSAGetLastError() != WSAEWOULDBLOCK) {
                     safe_print("Send failed: " + to_string(WSAGetLastError()) + "\n");
