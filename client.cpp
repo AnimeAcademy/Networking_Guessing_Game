@@ -44,22 +44,31 @@ static void receive_loop(SOCKET sock)
                     }
         // if server disconnect, print disconnection method and exit.
                     safe_print("Error receiving data, please press ctl + c to disconect and try again");
-                    return;
+                    break;
                 }
                 else {
                     this_thread::sleep_for(chrono::milliseconds(100));
                 }
             }
             else if (res == 0) {//done receiving
-                running = false;
-                return;
+                break;
             }
             else {
                  // if successful, decode message and display text.
                 msg.append(buf, res);
+
+                size_t pos;
+                while ((pos = msg.find('\n')) != string::npos)
+                {
+                    string line = msg.substr(0, pos + 1);
+
+                    safe_print(line);
+
+                    // Remove the printed line from the buffer.
+                    msg.erase(0, pos + 1);
+                }
             }
         }
-        safe_print(msg);
 
         running = false;
     }
@@ -171,7 +180,7 @@ static void run_client(const string& server_ip, int port)
 
 int main(int argc, char* argv[])
 {
-    // TODO: get port from argv (is it valid?)
+    // get port from argv (is it valid?)
     int port = 0;
     string server_ip = "127.0.0.1";
     if (argc != 2) {
