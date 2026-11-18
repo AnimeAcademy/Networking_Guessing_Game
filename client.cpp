@@ -38,11 +38,7 @@ static void receive_loop(SOCKET sock)
             if (res == SOCKET_ERROR) {
                 if (WSAGetLastError() != WSAEWOULDBLOCK) {
                     cout << "recv: " << WSAGetLastError() << endl;
-                    res = closesocket(sock);
-                    if (res != 0) {
-                        cout << "closesocket: " << WSAGetLastError() << endl;
-                    }
-        // if server disconnect, print disconnection method and exit.
+                    // if server disconnect, print disconnection method and exit.
                     safe_print("Error receiving data, please press ctl + c to disconect and try again");
                     break;
                 }
@@ -95,22 +91,13 @@ static void input_loop(SOCKET sock)
             if (res == SOCKET_ERROR) {
                 if (WSAGetLastError() != WSAEWOULDBLOCK) {
                     safe_print("Send failed: " + to_string(WSAGetLastError()) + "\n");
-                    res = closesocket(sock);
-                    if (res != 0) {
-                        safe_print("Socketclose failed: " + to_string(WSAGetLastError()) + "\n");
-                    }
                     running = false;
                     return;
                 }
                 this_thread::sleep_for(chrono::milliseconds(100));
             }
             else if (res == 0) {
-                res = closesocket(sock);
-                if (res != 0) {
-                    safe_print("Socketclose failed: " + to_string(WSAGetLastError()) + "\n");
-                }
-                running = false;
-                return;
+                break;
             }
             else
                 bytesSent += res;
@@ -141,12 +128,6 @@ static void run_client(const string& server_ip, int port)
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);//serverIP????????????
 
-    //Create a TCP Socket
-    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (sock == INVALID_SOCKET) {
-        cout << "socket: " << WSAGetLastError() << endl;
-        return;
-    }
     //Connect Socket
     res = connect(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
     if (res == SOCKET_ERROR) {
