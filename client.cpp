@@ -184,6 +184,12 @@ int main(int argc, char* argv[])
     
     run_client(server_ip, port);
 
+    //Shutting Down Library
+    
+    if (WSACleanup() != 0) {
+        cout << "WSACleanup: " << WSAGetLastError() << endl;
+        return;
+    }
     //// Print usage instructions if port not given
     //try
     //{
