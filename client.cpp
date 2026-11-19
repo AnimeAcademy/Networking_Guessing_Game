@@ -83,6 +83,7 @@ static void input_loop(SOCKET sock)
         int res = SOCKET_ERROR;
         string msg = "Player Guess: ";
         msg.append(input);
+        msg.append("\n");
         int totalBytes = (int)msg.length();
         int bytesSent = 0;
         while (bytesSent != totalBytes) {

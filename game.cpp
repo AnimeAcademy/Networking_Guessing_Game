@@ -116,8 +116,9 @@ void ClientGameLogic(SOCKET clientSocket)
     while (!game_over_flag) {
         //Ask for Guess
         if (game_over_flag) break;
+        cout << "location 111" << endl;
 
-        message = "Your Guess: ";
+        message = "Your Guess: \n";
         res = SendTCPMessage(clientSocket, message);
         if (res == 0) {
             Remove_Client(client_id, clientSocket);
@@ -125,6 +126,7 @@ void ClientGameLogic(SOCKET clientSocket)
 
             return;
         }
+        cout << "location 115" << endl;
 
         //get players guess
         while (true) {
@@ -138,7 +140,7 @@ void ClientGameLogic(SOCKET clientSocket)
         if (start != string::npos) {
 
             start += string("Player Guess: ").length();
-            playerGuess = stoi(msg, &start);
+            playerGuess = stoi(msg.substr(start));
             //procces guess
             message = process_guess(playerGuess, client_id);
             //found guess now send response to player
