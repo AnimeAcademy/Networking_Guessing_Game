@@ -9,9 +9,9 @@
 #include <algorithm>
 #include <vector>
 
-extern atomic<int> client_counter;
+extern std::atomic<int> client_counter;
 
-void safe_print(const string& msg);
+void safe_print(const std::string& msg);
 
 void Add_Client(int ID, SOCKET sock);
 

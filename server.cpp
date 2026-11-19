@@ -5,7 +5,8 @@ using namespace std;
 #pragma comment(lib, "ws2_32.lib")
 
 vector<std::pair<int, SOCKET>> clients;
-static atomic<int> client_counter{ 0 };
+atomic<int> client_counter{ 0 };
+
 
 mutex cout_mutex;
 mutex clients_mutex;
@@ -34,7 +35,7 @@ void Remove_Client(int client_id, SOCKET clientSock, int error) {
         safe_print(msg);
     }
     //print which client left
-    msg = "Client " + to_string(client_id) + "disconnected\n";
+    msg = "Client " + to_string(client_id) + " disconnected\n";
     safe_print(msg);
     //remove client from registar
     std::lock_guard<std::mutex> lock(clients_mutex);

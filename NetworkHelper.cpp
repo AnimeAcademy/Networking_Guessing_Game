@@ -30,7 +30,6 @@ int RecieveTCPMessage(SOCKET sock, string& message)
 #define BUF_LEN 1400
     message.clear();
     char buf[BUF_LEN + 1]; //leave room for \0
-    SOCKET sock = INVALID_SOCKET;
     int res;
     while (true) {
         res = recv(sock, buf, BUF_LEN, 0); // resv = num of bytes recieved

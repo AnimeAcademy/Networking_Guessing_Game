@@ -63,8 +63,9 @@ void reset_game()
     init_game();
 }
 
-void ClientGameLogic(SOCKET clientSocket) {
-    //Set Client ID
+void ClientGameLogic(SOCKET clientSocket)
+{
+//Set Client ID
     int client_id = ++client_counter;
     Add_Client(client_id, clientSocket);
 
