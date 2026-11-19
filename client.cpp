@@ -65,7 +65,6 @@ static void receive_loop(SOCKET sock)
                 }
             }
         }
-
         running = false;
     }
 }

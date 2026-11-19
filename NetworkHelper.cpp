@@ -1,7 +1,6 @@
 #include "NetworkHelper.h"
+#include "game.h"
 #include <thread>
-
-using namespace std;
 
 int SendTCPMessage(SOCKET sock, string& message)
 {
@@ -12,26 +11,32 @@ int SendTCPMessage(SOCKET sock, string& message)
         res = send(sock, (message.c_str() + bytesSent), (totalBytes - bytesSent), 0);
         if (res == SOCKET_ERROR) {
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
+                cout << "location 10" << endl;
+
                 return 0;
             }
             this_thread::sleep_for(chrono::milliseconds(100));
         }
         else if (res == 0) {
+            cout << "location 11" << endl;
+
             return 1;
         }
         else
             bytesSent += res;
     }
-	return 0;
+    //cout << "location 12" << endl;
+
+	return 1;
 }
 
-int RecieveTCPMessage(SOCKET sock, string& message)
+int RecieveTCPMessage(SOCKET sock, string& msg)
 {
 #define BUF_LEN 1400
-    message.clear();
+    string message;
     char buf[BUF_LEN + 1]; //leave room for \0
     int res;
-    while (true) {
+    while (!GetGameOverFlag()) {
         res = recv(sock, buf, BUF_LEN, 0); // resv = num of bytes recieved
         if (res == SOCKET_ERROR) {
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
@@ -46,6 +51,17 @@ int RecieveTCPMessage(SOCKET sock, string& message)
         }
         else {//take recieved bytes and store full message then check to see if we have the request
             message.append(buf, res);
+
+            size_t pos;
+            while ((pos = message.find('\n')) != string::npos)
+            {
+                msg.append(message.substr(0, pos + 1));
+
+                // Remove the printed line from the buffer.
+                message.erase(0, pos + 1);
+            }
         }
+
     }
 }
+

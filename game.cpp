@@ -1,6 +1,8 @@
 #include "game.h"
 #include "server.h"
 #include "NetworkHelper.h"
+#include <thread>
+
 
 using namespace std;
 
@@ -67,6 +69,7 @@ void ClientGameLogic(SOCKET clientSocket)
 {
 //Set Client ID
     int client_id = ++client_counter;
+    string msg;
     Add_Client(client_id, clientSocket);
 
     //Print Client connected
@@ -79,6 +82,8 @@ void ClientGameLogic(SOCKET clientSocket)
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
         Remove_Client(client_id, clientSocket);
+        cout << "location 1" << endl;
+
         return;
     }
     //Explain the rules
@@ -88,6 +93,8 @@ void ClientGameLogic(SOCKET clientSocket)
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
         Remove_Client(client_id, clientSocket);
+        cout << "location 2" << endl;
+
         return;
     }
     //TODO: Ready UP?
@@ -97,38 +104,50 @@ void ClientGameLogic(SOCKET clientSocket)
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
         Remove_Client(client_id, clientSocket);
+        cout << "location 3" << endl;
+
         return;
     }
 
+    thread recv(RecieveTCPMessage, clientSocket, ref(msg));
+    recv.detach();
+
+
     while (!game_over_flag) {
         //Ask for Guess
+        if (game_over_flag) break;
+
         message = "Your Guess: ";
         res = SendTCPMessage(clientSocket, message);
         if (res == 0) {
             Remove_Client(client_id, clientSocket);
+            cout << "location 4" << endl;
+
             return;
         }
 
         //get players guess
-        res = RecieveTCPMessage(clientSocket, message);
-        if (res == 0) {
-            Remove_Client(client_id, clientSocket);
-            return;
+        while (true) {
+            if (game_over_flag) break;
+            this_thread::sleep_for(chrono::milliseconds(10));
+            if (!msg.empty()) break;
         }
 
         //check player guess 
-        size_t start = message.find("Player Guess: ");
+        size_t start = msg.find("Player Guess: ");
         if (start != string::npos) {
 
             start += string("Player Guess: ").length();
-            playerGuess = stoi(message, &start);
-            //TODO save output bool
+            playerGuess = stoi(msg, &start);
+            //procces guess
             message = process_guess(playerGuess, client_id);
             //found guess now send response to player
             //Too high / low or correct
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
                 Remove_Client(client_id, clientSocket);
+                cout << "location 6" << endl;
+
                 return;
             }
         }
@@ -138,9 +157,13 @@ void ClientGameLogic(SOCKET clientSocket)
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
                 Remove_Client(client_id, clientSocket);
+                cout << "location 7" << endl;
+
                 return;
             }
         }
+        //removed msg data
+        msg.clear();
     }
     //After game ended
     if (client_id != winner_client) {
@@ -149,12 +172,16 @@ void ClientGameLogic(SOCKET clientSocket)
         SendTCPMessage(clientSocket, message);
         if (res == 0) {
             Remove_Client(client_id, clientSocket);
+            cout << "location 8" << endl;
+
             return;
         }
     }
     //After recieving who won (themselves or someone else)
 
     //tell client we are done and close socket
+    cout << "location 9" << endl;
+
     res = shutdown(clientSocket, SD_SEND);
     if (res == SOCKET_ERROR) {
         cout << "shutdown: " << WSAGetLastError() << endl;
@@ -163,4 +190,9 @@ void ClientGameLogic(SOCKET clientSocket)
     Remove_Client(client_id, clientSocket);
 
     return;
+}
+
+bool GetGameOverFlag()
+{
+    return game_over_flag;
 }

@@ -6,6 +6,7 @@
 
 using namespace std;
 
+
 void init_game();
 
 string process_guess(int guess, int client_id);
@@ -18,6 +19,7 @@ void reset_game();
 
 void ClientGameLogic(SOCKET clientSocket);
 
+bool GetGameOverFlag();
 
 
 

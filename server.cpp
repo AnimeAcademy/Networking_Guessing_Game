@@ -1,5 +1,7 @@
 #include "server.h"
 #include "game.h"
+#include <thread>
+
 
 using namespace std;
 #pragma comment(lib, "ws2_32.lib")
@@ -38,7 +40,7 @@ void Remove_Client(int client_id, SOCKET clientSock, int error) {
     msg = "Client " + to_string(client_id) + " disconnected\n";
     safe_print(msg);
     //remove client from registar
-    std::lock_guard<std::mutex> lock(clients_mutex);
+    lock_guard<mutex> lock(clients_mutex);
     clients.erase(
         remove_if(clients.begin(), clients.end(),
             [client_id](const auto& client) {
@@ -50,7 +52,7 @@ void Remove_Client(int client_id, SOCKET clientSock, int error) {
 
 bool Are_Clients_Empty()
 {
-    std::lock_guard<std::mutex> lock(clients_mutex);
+    lock_guard<mutex> lock(clients_mutex);
     return clients.empty();
 }
 
