@@ -11,22 +11,16 @@ int SendTCPMessage(SOCKET sock, string& message)
         res = send(sock, (message.c_str() + bytesSent), (totalBytes - bytesSent), 0);
         if (res == SOCKET_ERROR) {
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
-                cout << "location 10" << endl;
-
                 return 0;
             }
             this_thread::sleep_for(chrono::milliseconds(100));
         }
         else if (res == 0) {
-            cout << "location 11" << endl;
-
             return 1;
         }
         else
             bytesSent += res;
     }
-    //cout << "location 12" << endl;
-
 	return 1;
 }
 

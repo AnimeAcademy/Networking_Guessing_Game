@@ -28,24 +28,24 @@ string process_guess(int guess, int client_id)
     lock_guard<mutex> lock(game_mutex);
     if (game_over_flag)
     {
-        return { "Game already won!\r\n", false };
+        return { "Game already won!\r\n" };
     }
     if (guess > 100) {
-        return { "Number is higher than guessing range.\r\n", false };
+        return { "Number is higher than guessing range.\r\n" };
     }
     if (guess < secret_number)
     {
-        return { "Too low.\r\n", false };
+        return { "Too low.\r\n" };
     }
     else if (guess > secret_number)
     {
-        return { "Too high.\r\n", false };
+        return { "Too high.\r\n" };
     }
     else
     {
         winner_client = client_id;
         game_over_flag = true;
-        return { "Correct! You win!\r\n", true };
+        return { "Correct! You win!\r\n" };
     }
 }
 
@@ -82,8 +82,6 @@ void ClientGameLogic(SOCKET clientSocket)
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
         Remove_Client(client_id, clientSocket);
-        cout << "location 1" << endl;
-
         return;
     }
     //Explain the rules
@@ -93,8 +91,6 @@ void ClientGameLogic(SOCKET clientSocket)
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
         Remove_Client(client_id, clientSocket);
-        cout << "location 2" << endl;
-
         return;
     }
     //TODO: Ready UP?
@@ -104,8 +100,6 @@ void ClientGameLogic(SOCKET clientSocket)
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
         Remove_Client(client_id, clientSocket);
-        cout << "location 3" << endl;
-
         return;
     }
 
@@ -116,18 +110,12 @@ void ClientGameLogic(SOCKET clientSocket)
     while (!game_over_flag) {
         //Ask for Guess
         if (game_over_flag) break;
-        cout << "location 111" << endl;
-
         message = "Your Guess: \n";
         res = SendTCPMessage(clientSocket, message);
         if (res == 0) {
             Remove_Client(client_id, clientSocket);
-            cout << "location 4" << endl;
-
             return;
         }
-        cout << "location 115" << endl;
-
         //get players guess
         while (true) {
             if (game_over_flag) break;
@@ -138,18 +126,24 @@ void ClientGameLogic(SOCKET clientSocket)
         //check player guess 
         size_t start = msg.find("Player Guess: ");
         if (start != string::npos) {
-
+            // Move start past "Player Guess: "
             start += string("Player Guess: ").length();
-            playerGuess = stoi(msg.substr(start));
-            //procces guess
-            message = process_guess(playerGuess, client_id);
+            try {
+                //procces guess
+                playerGuess = stoi(msg.substr(start));
+                message = process_guess(playerGuess, client_id);
+            }//checks to see if they sent an int or not
+            catch (const invalid_argument&) {
+                message = "Please enter a valid number.\n";
+            }//makes sure the int isn't too large
+            catch (const out_of_range&) {
+                message = "Number is too large.\n";
+            }
             //found guess now send response to player
             //Too high / low or correct
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
                 Remove_Client(client_id, clientSocket);
-                cout << "location 6" << endl;
-
                 return;
             }
         }
@@ -159,8 +153,6 @@ void ClientGameLogic(SOCKET clientSocket)
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
                 Remove_Client(client_id, clientSocket);
-                cout << "location 7" << endl;
-
                 return;
             }
         }
@@ -174,16 +166,12 @@ void ClientGameLogic(SOCKET clientSocket)
         SendTCPMessage(clientSocket, message);
         if (res == 0) {
             Remove_Client(client_id, clientSocket);
-            cout << "location 8" << endl;
-
             return;
         }
     }
     //After recieving who won (themselves or someone else)
 
     //tell client we are done and close socket
-    cout << "location 9" << endl;
-
     res = shutdown(clientSocket, SD_SEND);
     if (res == SOCKET_ERROR) {
         cout << "shutdown: " << WSAGetLastError() << endl;

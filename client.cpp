@@ -150,13 +150,6 @@ static void run_client(const string& server_ip, int port)
     if (res != 0) {
         cout << "closesocket: " << WSAGetLastError() << endl;
     }
-
-    res = WSACleanup();
-    if (res != 0) {
-        cout << "WSACleanup: " << WSAGetLastError() << endl;
-        return;
-    }
-
 }
 
 int main(int argc, char* argv[])
