@@ -93,7 +93,7 @@ void ClientGameLogic(SOCKET clientSocket)
     string message = "Client " + to_string(client_id) + " connected\n";
     safe_print(message);
 
-    message = "Welcome to the Guessing Game!\n";
+    message = "Welcome to the Guessing Game! Client " + to_string(client_id) + "\n";
     int res, playerGuess;
     //Welcome to game
     res = SendTCPMessage(clientSocket, message);
@@ -121,7 +121,7 @@ void ClientGameLogic(SOCKET clientSocket)
     }
    
 
-    while (!game_over_flag) {
+    while (!game_over_flag && receiving) {
         //Ask for Guess
         if (game_over_flag) break;
         message = "Your Guess: \n";
@@ -131,11 +131,15 @@ void ClientGameLogic(SOCKET clientSocket)
             return;
         }
         //get players guess
-        while (true) {
+        while (receiving && !game_over_flag) {
             if (game_over_flag) break;
             this_thread::sleep_for(chrono::milliseconds(10));
             lock_guard<mutex> lock(msg_mutex);
             if (!msg.empty()) break;
+        }
+        if (!receiving) {
+            cleanup();
+            return;
         }
         if (game_over_flag) break;
 
@@ -191,6 +195,7 @@ void ClientGameLogic(SOCKET clientSocket)
     if (client_id != winner_client) {
         //If player didn't win say who did
         message = "Client " + to_string(winner_client) + " has won!\n";
+        message.append("Winning Guess was " + to_string(secret_number) + "!\n");
         res = SendTCPMessage(clientSocket, message);
         if (res == 0) {
             cleanup();

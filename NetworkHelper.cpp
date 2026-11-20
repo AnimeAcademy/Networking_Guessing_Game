@@ -34,6 +34,7 @@ int RecieveTCPMessage(SOCKET sock, string& msg, mutex& msg_mutex, atomic<bool>& 
         res = recv(sock, buf, BUF_LEN, 0); // resv = num of bytes recieved
         if (res == SOCKET_ERROR) {
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
+                receiving = false; 
                 return 0;
             }
             else {
@@ -41,6 +42,7 @@ int RecieveTCPMessage(SOCKET sock, string& msg, mutex& msg_mutex, atomic<bool>& 
             }
         }
         else if (res == 0) {//done receiving
+            receiving = false;
             return 1;
         }
         else {//take recieved bytes and store full message then check to see if we have the request
