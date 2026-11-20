@@ -3,6 +3,7 @@
 #include <ws2tcpip.h>
 #include <iostream>
 #include <string>
+#include <mutex>
 
 using namespace std;
 
@@ -18,4 +19,4 @@ int SendTCPMessage(SOCKET sock, string& message);
 // SOCKET is where you are recieving data
 // STRING is where the message will be stored
 // returns 1 if succseeded and 0 if failed
-int RecieveTCPMessage(SOCKET sock, string& msg);
+int RecieveTCPMessage(SOCKET sock, string& msg, mutex& msg_mutex, atomic<bool>& receiving);

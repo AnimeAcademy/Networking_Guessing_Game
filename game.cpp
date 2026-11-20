@@ -23,6 +23,7 @@ void init_game()
     game_over_flag = false;
 }
 
+
 string process_guess(int guess, int client_id)
 {
     lock_guard<mutex> lock(game_mutex);
@@ -67,10 +68,26 @@ void reset_game()
 
 void ClientGameLogic(SOCKET clientSocket)
 {
+
 //Set Client ID
     int client_id = ++client_counter;
+    atomic<bool> receiving{ true };
     string msg;
+    mutex msg_mutex;
     Add_Client(client_id, clientSocket);
+    
+    thread recv(RecieveTCPMessage, clientSocket, ref(msg), ref(msg_mutex), ref(receiving));
+
+    auto cleanup = [&]() {
+        receiving = false;
+        shutdown(clientSocket, SD_BOTH);
+
+        if (recv.joinable()) {
+            recv.join();
+        }
+
+        Remove_Client(client_id, clientSocket);
+        };
 
     //Print Client connected
     string message = "Client " + to_string(client_id) + " connected\n";
@@ -81,7 +98,7 @@ void ClientGameLogic(SOCKET clientSocket)
     //Welcome to game
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
-        Remove_Client(client_id, clientSocket);
+        cleanup();
         return;
     }
     //Explain the rules
@@ -90,7 +107,7 @@ void ClientGameLogic(SOCKET clientSocket)
         "First one to guess the number WINS!\n";
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
-        Remove_Client(client_id, clientSocket);
+        cleanup();
         return;
     }
     //TODO: Ready UP?
@@ -99,13 +116,10 @@ void ClientGameLogic(SOCKET clientSocket)
     message = "Let's start guessing!\n";
     res = SendTCPMessage(clientSocket, message);
     if (res == 0) {
-        Remove_Client(client_id, clientSocket);
+        cleanup();
         return;
     }
-
-    thread recv(RecieveTCPMessage, clientSocket, ref(msg));
-    recv.detach();
-
+   
 
     while (!game_over_flag) {
         //Ask for Guess
@@ -113,24 +127,41 @@ void ClientGameLogic(SOCKET clientSocket)
         message = "Your Guess: \n";
         res = SendTCPMessage(clientSocket, message);
         if (res == 0) {
-            Remove_Client(client_id, clientSocket);
+            cleanup();
             return;
         }
         //get players guess
         while (true) {
             if (game_over_flag) break;
             this_thread::sleep_for(chrono::milliseconds(10));
+            lock_guard<mutex> lock(msg_mutex);
             if (!msg.empty()) break;
         }
+        if (game_over_flag) break;
 
+        {
+            lock_guard<mutex> lock(msg_mutex);
+            message = msg;
+            //removed msg data
+            msg.clear();
+        }
         //check player guess 
-        size_t start = msg.find("Player Guess: ");
+        size_t start = message.find("Player Guess: ");
         if (start != string::npos) {
             // Move start past "Player Guess: "
             start += string("Player Guess: ").length();
             try {
                 //procces guess
-                playerGuess = stoi(msg.substr(start));
+                string input = message.substr(start);
+                size_t pos = 0;
+
+                playerGuess = stoi(input, &pos);
+
+                if (pos != input.length() && input.substr(pos) != "\n" &&
+                    input.substr(pos) != "\r\n") {
+                    throw invalid_argument("Invalid characters in guess");
+                }
+
                 message = process_guess(playerGuess, client_id);
             }//checks to see if they sent an int or not
             catch (const invalid_argument&) {
@@ -143,42 +174,32 @@ void ClientGameLogic(SOCKET clientSocket)
             //Too high / low or correct
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
-                Remove_Client(client_id, clientSocket);
-                return;
+                break;
             }
         }
         else {
             //failed to get player guess try again
-            message = "Wrong input, please put in a valid number";
+            message = "Wrong input, please put in a valid number\n";
             res = SendTCPMessage(clientSocket, message);
             if (res == 0) {
-                Remove_Client(client_id, clientSocket);
+                cleanup();
                 return;
             }
         }
-        //removed msg data
-        msg.clear();
     }
     //After game ended
     if (client_id != winner_client) {
         //If player didn't win say who did
-        message = "Client " + to_string(winner_client) + " has won!";
-        SendTCPMessage(clientSocket, message);
+        message = "Client " + to_string(winner_client) + " has won!\n";
+        res = SendTCPMessage(clientSocket, message);
         if (res == 0) {
-            Remove_Client(client_id, clientSocket);
+            cleanup();
             return;
         }
     }
     //After recieving who won (themselves or someone else)
-
     //tell client we are done and close socket
-    res = shutdown(clientSocket, SD_SEND);
-    if (res == SOCKET_ERROR) {
-        cout << "shutdown: " << WSAGetLastError() << endl;
-    }
-
-    Remove_Client(client_id, clientSocket);
-
+    cleanup();
     return;
 }
 

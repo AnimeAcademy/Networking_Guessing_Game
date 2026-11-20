@@ -24,13 +24,13 @@ int SendTCPMessage(SOCKET sock, string& message)
 	return 1;
 }
 
-int RecieveTCPMessage(SOCKET sock, string& msg)
+int RecieveTCPMessage(SOCKET sock, string& msg, mutex& msg_mutex, atomic<bool>& receiving)
 {
 #define BUF_LEN 1400
     string message;
     char buf[BUF_LEN + 1]; //leave room for \0
     int res;
-    while (!GetGameOverFlag()) {
+    while (receiving && !GetGameOverFlag()) {
         res = recv(sock, buf, BUF_LEN, 0); // resv = num of bytes recieved
         if (res == SOCKET_ERROR) {
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
@@ -49,6 +49,7 @@ int RecieveTCPMessage(SOCKET sock, string& msg)
             size_t pos;
             while ((pos = message.find('\n')) != string::npos)
             {
+                lock_guard<mutex> lock(msg_mutex);
                 msg.append(message.substr(0, pos + 1));
 
                 // Remove the printed line from the buffer.
